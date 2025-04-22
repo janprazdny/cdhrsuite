@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { UserIcon, Cog6ToothIcon, UsersIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+import { Cog6ToothIcon, UsersIcon } from '@heroicons/react/24/outline';
 
 export default function Navbar() {
   return (

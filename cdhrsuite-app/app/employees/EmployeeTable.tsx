@@ -130,7 +130,7 @@ export default function EmployeeTable() {
     return (
       <div className="bg-white p-6 rounded-lg shadow">
         <p className="text-gray-500 text-center py-8">
-          No employees found. Click "Add Employee" to create your first employee record.
+          No employees found. Click &quot;Add Employee&quot; to create your first employee record.
         </p>
       </div>
     );
