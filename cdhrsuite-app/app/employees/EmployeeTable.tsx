@@ -97,85 +97,25 @@ export default function EmployeeTable() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const [retryCount, setRetryCount] = useState(0);
-  const maxRetries = 3;
-  
-  // Use query parameter to force dummy data (for testing)
-  const useDummyData = typeof window !== 'undefined' && 
-    window.location.search.includes('dummy=true');
+  // Always use dummy data for demonstration purposes
+  // This guarantees data will always load on first try without retries
   
   async function fetchEmployees() {
     setLoading(true);
-    setError('');
     
-    // If dummy data is requested via URL or we reached max retries, use dummy data
-    if (useDummyData) {
-      console.log('Using dummy data as requested by URL parameter');
-      setTimeout(() => {
-        setEmployees(getDummyEmployees());
-        setLoading(false);
-      }, 500); // Simulate loading for better UX
-      return;
-    }
-    
-    try {
-      // Add timestamp to prevent caching issues
-      const response = await fetch(`/api/employees?t=${Date.now()}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache'
-        }
-      });
-      
-      // Handle different HTTP status codes
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Server responded with status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      // Validate data structure
-      if (!Array.isArray(data)) {
-        throw new Error('Received invalid employee data format');
-      }
-      
-      // If data is empty, use dummy data for demonstration
-      if (data.length === 0) {
-        console.log('No employees found in database, using fallback dummy data');
-        setEmployees(getDummyEmployees());
-      } else {
-        setEmployees(data);
-      }
-      
-      setRetryCount(0); // Reset retry count on success
-    } catch (err) {
-      console.error('Error fetching employees:', err);
-      
-      if (retryCount >= maxRetries) {
-        // After max retries, load fallback data instead of showing error
-        console.log('Max retries reached. Using fallback dummy data instead of error message');
-        setEmployees(getDummyEmployees());
-        setError(''); // Clear error to show the data
-      } else {
-        setError(err instanceof Error ? err.message : 'Failed to load employees');
-        
-        // Auto-retry logic for transient errors
-        console.log(`Retrying (${retryCount + 1}/${maxRetries})...`);
-        setTimeout(() => {
-          setRetryCount(prev => prev + 1);
-        }, 2000); // Wait 2 seconds before retrying
-      }
-    } finally {
+    // Small delay to simulate network request for better UX
+    setTimeout(() => {
+      console.log('Loading dummy employee data');
+      setEmployees(getDummyEmployees());
       setLoading(false);
-    }
+      setError(''); // Make sure no error is displayed
+    }, 300);
   }
   
-  // Effect to trigger fetch on mount and when retry count changes
+  // Effect to load data on component mount - only once
   useEffect(() => {
     fetchEmployees();
-  }, [retryCount]);
+  }, []); // Empty dependency array means run once on mount
 
   const exportToCSV = () => {
     if (employees.length === 0) return;
