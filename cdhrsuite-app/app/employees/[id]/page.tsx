@@ -6,9 +6,16 @@ import { notFound } from 'next/navigation';
 
 export const dynamicParams = true;
 
-async function getEmployee(id: string) {
+type Props = {
+  params: {
+    id: string;
+  };
+};
+
+export default async function EmployeeDetailPage({ params }: Props) {
+  // Fetch employee data
   const employee = await prisma.employee.findUnique({
-    where: { id },
+    where: { id: params.id },
     include: {
       contracts: true,
       reportingManager: true
@@ -19,17 +26,6 @@ async function getEmployee(id: string) {
     notFound();
   }
   
-  return employee;
-}
-
-interface PageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default async function EmployeeDetailPage({ params }: PageProps) {
-  const employee = await getEmployee(params.id);
   const contract = employee.contracts[0];
   
   const formatDate = (date: Date | null) => {
