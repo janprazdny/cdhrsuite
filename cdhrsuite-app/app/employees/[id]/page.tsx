@@ -22,7 +22,13 @@ async function getEmployee(id: string) {
   return employee;
 }
 
-export default async function EmployeeDetailPage({ params }: { params: { id: string } }) {
+interface PageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default async function EmployeeDetailPage({ params }: PageProps) {
   const employee = await getEmployee(params.id);
   const contract = employee.contracts[0];
   
