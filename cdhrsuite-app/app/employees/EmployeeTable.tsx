@@ -209,10 +209,10 @@ export default function EmployeeTable() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex space-x-2">
-                      <Link href={`/employees/${employee.id}`} className="text-indigo-600 hover:text-indigo-900">
+                      <button className="text-indigo-600 hover:text-indigo-900" disabled>
                         <PencilIcon className="h-5 w-5" />
-                      </Link>
-                      <button className="text-red-600 hover:text-red-900">
+                      </button>
+                      <button className="text-red-600 hover:text-red-900" disabled>
                         <TrashIcon className="h-5 w-5" />
                       </button>
                     </div>
