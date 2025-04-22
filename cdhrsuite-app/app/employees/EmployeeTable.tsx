@@ -96,8 +96,9 @@ export default function EmployeeTable() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  // Using underscore prefix to indicate intentionally unused setState function
-  const [retryCount, _setRetryCount] = useState(0);
+  
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [retryCount] = useState(0);
   const maxRetries = 3;
 
   // Always use dummy data for demonstration purposes
