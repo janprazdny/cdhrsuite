@@ -3,19 +3,45 @@ import { prisma } from '@/app/lib/db/prisma';
 
 export async function GET() {
   try {
+    // Ensure database connection is established
+    await prisma.$connect();
+    
+    // Fetch employees with better error handling
     const employees = await prisma.employee.findMany({
       include: {
         contracts: true
       }
+    }).catch((dbError) => {
+      console.error('Database error while fetching employees:', dbError);
+      throw new Error('Database connection failed. Please try again later.');
     });
     
-    return NextResponse.json(employees);
+    // Add proper status and validate response
+    if (!employees) {
+      return NextResponse.json(
+        { error: 'No employee data available' },
+        { status: 404 }
+      );
+    }
+    
+    return NextResponse.json(employees, { status: 200 });
   } catch (error) {
+    // Improved error logging
     console.error('Error fetching employees:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
+    // Return a more descriptive error response
     return NextResponse.json(
-      { error: 'Failed to fetch employees' },
+      { 
+        error: 'Failed to fetch employees', 
+        message: errorMessage,
+        timestamp: new Date().toISOString()
+      },
       { status: 500 }
     );
+  } finally {
+    // Always disconnect from database to prevent connection leaks
+    await prisma.$disconnect();
   }
 }
 

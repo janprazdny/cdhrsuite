@@ -31,27 +31,58 @@ export default function EmployeeTable() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    async function fetchEmployees() {
-      try {
-        const response = await fetch('/api/employees');
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch employees');
-        }
-        
-        const data = await response.json();
-        setEmployees(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load employees');
-        console.error('Error fetching employees:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 3;
+  
+  async function fetchEmployees() {
+    setLoading(true);
+    setError('');
     
+    try {
+      // Add timestamp to prevent caching issues
+      const response = await fetch(`/api/employees?t=${Date.now()}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
+        }
+      });
+      
+      // Handle different HTTP status codes
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Server responded with status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Validate data structure
+      if (!Array.isArray(data)) {
+        throw new Error('Received invalid employee data format');
+      }
+      
+      setEmployees(data);
+      setRetryCount(0); // Reset retry count on success
+    } catch (err) {
+      console.error('Error fetching employees:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load employees');
+      
+      // Auto-retry logic for transient errors
+      if (retryCount < maxRetries) {
+        console.log(`Retrying (${retryCount + 1}/${maxRetries})...`);
+        setTimeout(() => {
+          setRetryCount(prev => prev + 1);
+        }, 2000); // Wait 2 seconds before retrying
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+  
+  // Effect to trigger fetch on mount and when retry count changes
+  useEffect(() => {
     fetchEmployees();
-  }, []);
+  }, [retryCount]);
 
   const exportToCSV = () => {
     if (employees.length === 0) return;
@@ -120,7 +151,20 @@ export default function EmployeeTable() {
   if (error) {
     return (
       <div className="bg-red-50 border-l-4 border-red-500 p-4 my-4">
-        <p className="text-red-700">{error}</p>
+        <p className="text-red-700">Nepodařilo se načíst seznam zaměstnanců. Zkuste to prosím znovu nebo kontaktujte podporu.</p>
+        <div className="mt-3 flex gap-3">
+          <button 
+            onClick={() => fetchEmployees()} 
+            className="bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-md text-sm"
+          >
+            Zkusit znovu
+          </button>
+          {retryCount > 0 && (
+            <p className="text-sm text-red-600 self-center">
+              Automatický pokus o opětovné načtení: {retryCount}/{maxRetries}
+            </p>
+          )}
+        </div>
       </div>
     );
   }
