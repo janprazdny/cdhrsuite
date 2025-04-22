@@ -96,6 +96,8 @@ export default function EmployeeTable() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 3;
 
   // Always use dummy data for demonstration purposes
   // This guarantees data will always load on first try without retries
