@@ -1,0 +1,106 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Employee {
+  id                String    @id @default(uuid())
+  internalId        Int       @unique @default(autoincrement())
+  photo             String?
+  fullName          String
+  personalEmail     String    @unique
+  workEmail         String?   @unique
+  nationality       String
+  dateOfBirth       DateTime?
+  address           String?
+  accountNumber     String?
+  
+  // Job Info
+  roleTitle         String
+  blendedRateLevel  String    // A-G
+  blendedRateCountry String   // CZ, DE, CH, SA, UK, GW
+  hayGrade          String?
+  reportingManagerId String?
+  reportingManager  Employee? @relation("ManagerToEmployee", fields: [reportingManagerId], references: [id])
+  subordinates      Employee[] @relation("ManagerToEmployee")
+  cooperationType   String    // Employee / Freelancer / External
+  department        String
+  team              String?
+  employeeStartDate DateTime
+  terminationDate   DateTime?
+  reasonEndDate     String?   // Limited contract / Dismissal / Leaver
+  reasonDismissal   String?   // option 1, option 2
+  status            String    // Active / Inactive / On Leave / etc.
+  typeOfWork        String    // project-based, operations, leadership
+  weeklyAllocation  Float?    // Percentage
+  notes             String?
+  
+  // Contract Info
+  contracts         Contract[]
+  
+  // Timestamps & Meta
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  sourceOfData      String    // manual / ATS / import / API
+  
+  @@map("employees")
+}
+
+model Contract {
+  id                String    @id @default(uuid())
+  employeeId        String
+  employee          Employee  @relation(fields: [employeeId], references: [id])
+  
+  // Contract Details
+  legalEntity       String
+  contractType      String    // employee, freelancer, advisor, etc.
+  contractStartDate DateTime
+  contractEndDate   DateTime?
+  contractDurationType String // Limited / Unlimited
+  
+  // Fix Remuneration
+  fixAmount         Float
+  fixCurrency       String    // CZK, EUR, CHF
+  fixFrequency      String    // Hourly/Daily/Monthly/Annual
+  
+  // Variable Remuneration
+  variableAmount    Float?
+  variableCurrency  String?   // CZK, EUR, CHF
+  variableFrequency String?   // Hourly/Daily/Monthly/Annual
+  variableType      String?   // KPI based / Revenue share / Option 3
+  
+  // Timestamps
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  @@map("contracts")
+}
+
+model WorkingTimeReference {
+  id             String   @id @default("default")
+  workdayHours   Float    @default(8)
+  monthlyHours   Float    @default(168)
+  monthlyWorkdays Float    @default(21)
+  monthsPerYear  Float    @default(12)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  @@map("working_time_reference")
+}
+
+model CurrencyExchange {
+  id        String   @id @default(uuid())
+  currency  String   @unique
+  rateToEUR Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("currency_exchange")
+}
